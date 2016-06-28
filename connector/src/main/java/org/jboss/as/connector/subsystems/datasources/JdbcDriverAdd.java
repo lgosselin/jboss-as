@@ -130,10 +130,15 @@ public class JdbcDriverAdd extends AbstractAddStepHandler {
 
         if (driverClassName == null) {
             final ServiceLoader<Driver> serviceLoader = module.loadService(Driver.class);
+            boolean driverLoaded = false;
             if (serviceLoader != null)
                 for (Driver driver : serviceLoader) {
                     startDriverServices(target, moduleId, driver, driverName, majorVersion, minorVersion, dataSourceClassName, xaDataSourceClassName);
+                    driverLoaded = true;
+                    break;
                 }
+            if (!driverLoaded)
+                throw new OperationFailedException(new ModelNode().set(MESSAGES.cannotInstantiateDriverClass(driverClassName))); // message should be more like "cannot find it"
         } else {
             try {
                 final Class<? extends Driver> driverClass = module.getClassLoader().loadClass(driverClassName)
